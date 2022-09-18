@@ -72,6 +72,12 @@ where
         self.inner.as_slice()
     }
 
+    /// Extracts a mutable slice containing the entire vector.
+    #[inline]
+    pub fn as_mut_slice(&mut self) -> &mut [BitmaskItem<B, T>] {
+        self.inner.as_mut_slice()
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
@@ -775,5 +781,25 @@ mod test {
         v.push_with_mask(0b00000000, 106);
 
         assert_eq!(v.as_slice().len(), 7);
+    }
+
+    #[test]
+    fn test_bitmask_vec_as_mut_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+        {
+            let s = v.as_mut_slice();
+            s[1].item = 500;
+            s[1].bitmask.set_bit(7, true);
+        }
+        assert_eq!(v[1], 500);
+        // hmmm.  TO.DO. maybe i should change index/indexmut to return BitmaskItem instead of just T...
+        assert_eq!(v.iter_with_mask().nth(1).unwrap().bitmask, 0b10000010);
     }
 }
