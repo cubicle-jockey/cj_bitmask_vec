@@ -2,6 +2,12 @@
 name = "cj_bitmask_vec"
 version = "0.1.0"
 edition = "2021"
+keywords = ["vec", "vector", "bit", "bitmask", "binary"]
+categories = ["encoding", "parsing"]
+repository = "https://github.com/cubicle-jockey/cj_bitmask_vec"
+homepage = "https://github.com/cubicle-jockey/cj_bitmask_vec"
+description = "BitmaskVec is a Vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported."
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
