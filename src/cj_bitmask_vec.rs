@@ -78,6 +78,12 @@ where
         self.inner.as_mut_slice()
     }
 
+    /// Clears the vector, removing all values.<br>
+    /// Note that this method has no effect on the allocated capacity of the vector.
+    pub fn clear(&mut self) {
+        self.inner.clear();
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
@@ -801,5 +807,19 @@ mod test {
         assert_eq!(v[1], 500);
         // hmmm.  TO.DO. maybe i should change index/indexmut to return BitmaskItem instead of just T...
         assert_eq!(v.iter_with_mask().nth(1).unwrap().bitmask, 0b10000010);
+    }
+
+    #[test]
+    fn test_bitmask_vec_clear() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+        v.clear();
+        assert_eq!(v.len(), 0);
     }
 }
