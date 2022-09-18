@@ -146,10 +146,16 @@ where
         x.item
     }
 
-    /// Removes an element without bitmask from the vector and returns it.
+    /// Removes an element and bitmask from the vector and returns it.
     #[inline]
     pub fn swap_with_mask_remove(&mut self, index: usize) -> BitmaskItem<B, T> {
         self.inner.swap_remove(index)
+    }
+
+    /// Shortens the vector, keeping the first len elements and dropping the rest
+    #[inline]
+    pub fn truncate(&mut self, len: usize) {
+        self.inner.truncate(len);
     }
 
     #[inline]
