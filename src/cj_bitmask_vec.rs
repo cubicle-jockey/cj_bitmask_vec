@@ -108,6 +108,25 @@ where
         self.inner.insert(index, BitmaskItem::new(bitmask, value));
     }
 
+    /// Returns true if the vector contains no elements.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    /// Removes and returns the element without bitmask at position index within the vector, shifting all elements after it to the left
+    #[inline]
+    pub fn remove(&mut self, index: usize) -> T {
+        let x = self.inner.remove(index);
+        x.item
+    }
+
+    /// Removes and returns the element and bitmask at position index within the vector, shifting all elements after it to the left
+    #[inline]
+    pub fn remove_with_mask(&mut self, index: usize) -> BitmaskItem<B, T> {
+        self.inner.remove(index)
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
