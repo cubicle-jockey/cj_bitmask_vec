@@ -55,8 +55,15 @@ where
     }
 
     /// Returns the number of elements the vector can hold without reallocating.
+    #[inline]
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
+    }
+
+    /// Moves all the elements of other into self, leaving other empty.
+    #[inline]
+    pub fn append(&mut self, other: &mut Self) {
+        self.inner.append(&mut other.inner)
     }
 
     #[inline]
@@ -722,5 +729,31 @@ mod test {
         let mut v = BitmaskVec::<u8, i32>::with_capacity(10);
 
         assert_eq!(10, v.capacity())
+    }
+
+    #[test]
+    fn test_bitmask_vec_append() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let mut v2 = BitmaskVec::<u8, i32>::new();
+        v2.push_with_mask(0b00000000, 100);
+        v2.push_with_mask(0b00000010, 101);
+        v2.push_with_mask(0b00000010, 102);
+        v2.push_with_mask(0b00000100, 103);
+        v2.push_with_mask(0b00000011, 104);
+        v2.push_with_mask(0b00000001, 105);
+        v2.push_with_mask(0b00000000, 106);
+
+        v.append(&mut v2);
+
+        assert_eq!(v.len(), 14);
+        assert_eq!(v2.len(), 0);
     }
 }
