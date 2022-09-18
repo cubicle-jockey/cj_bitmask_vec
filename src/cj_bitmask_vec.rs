@@ -1,7 +1,8 @@
 use crate::cj_bitmask_item::BitmaskItem;
 use cj_common::cj_binary::bitbuf::*;
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, RangeBounds};
 use std::slice::{Iter, IterMut};
+use std::vec::Drain;
 
 /// BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
 ///
@@ -80,8 +81,17 @@ where
 
     /// Clears the vector, removing all values.<br>
     /// Note that this method has no effect on the allocated capacity of the vector.
+    #[inline]
     pub fn clear(&mut self) {
         self.inner.clear();
+    }
+
+    #[inline]
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, BitmaskItem<B, T>>
+    where
+        R: RangeBounds<usize>,
+    {
+        self.inner.drain(range)
     }
 
     #[inline]
@@ -744,7 +754,7 @@ mod test {
 
     #[test]
     fn test_bitmask_vec_with_capacity() {
-        let mut v = BitmaskVec::<u8, i32>::with_capacity(10);
+        let v = BitmaskVec::<u8, i32>::with_capacity(10);
 
         assert_eq!(10, v.capacity())
     }
@@ -821,5 +831,21 @@ mod test {
         v.push_with_mask(0b00000000, 106);
         v.clear();
         assert_eq!(v.len(), 0);
+    }
+
+    #[test]
+    fn test_bitmask_vec_drain() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let x: Vec<_> = v.drain(1..).collect();
+        assert_eq!(v.len(), 1);
+        assert_eq!(x.len(), 6);
     }
 }
