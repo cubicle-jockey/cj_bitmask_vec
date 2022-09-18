@@ -7,6 +7,8 @@
 BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
 
 Items can be added with or without supplying bitmasks. Bitmask will default to zero if not supplied.
+
+Filtering iterator using bitmasks
 ```rust
 // filtering by bitmask
 fn main() {
