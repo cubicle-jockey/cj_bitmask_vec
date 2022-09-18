@@ -66,6 +66,12 @@ where
         self.inner.append(&mut other.inner)
     }
 
+    /// Extracts a slice containing the entire vector.
+    #[inline]
+    pub fn as_slice(&self) -> &[BitmaskItem<B, T>] {
+        self.inner.as_slice()
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
@@ -755,5 +761,19 @@ mod test {
 
         assert_eq!(v.len(), 14);
         assert_eq!(v2.len(), 0);
+    }
+
+    #[test]
+    fn test_bitmask_vec_as_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        assert_eq!(v.as_slice().len(), 7);
     }
 }
