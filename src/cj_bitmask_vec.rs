@@ -121,6 +121,12 @@ where
         x.item
     }
 
+    /// Reserves capacity for at least additional more elements to be inserted in the given Vec
+    #[inline]
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional);
+    }
+
     /// Removes and returns the element and bitmask at position index within the vector, shifting all elements after it to the left
     #[inline]
     pub fn remove_with_mask(&mut self, index: usize) -> BitmaskItem<B, T> {
@@ -896,5 +902,20 @@ mod test {
         v.insert(2, 500);
         v.insert_with_mask(3, 0b11000000, 600);
         assert_eq!(v.len(), 9);
+    }
+
+    #[test]
+    fn test_bitmask_vec_reserve() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.reserve(10);
+        assert!(v.capacity() >= 17);
     }
 }
