@@ -1,4 +1,9 @@
 # cj_bitmask_vec
+[![Rust](https://github.com/cubicle-jockey/cj_bitmask_vec/actions/workflows/rust.yml/badge.svg)](https://github.com/cubicle-jockey/cj_bitmask_vec/actions/workflows/rust.yml)
+[![Dependency Review](https://github.com/cubicle-jockey/cj_bitmask_vec/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/cubicle-jockey/cj_bitmask_vec/actions/workflows/dependency-review.yml)
+[![Crate](https://img.shields.io/crates/v/cj_bitmask_vec.svg)](https://crates.io/crates/cj_bitmask_vec)
+[![API](https://docs.rs/cj_bitmask_vec/badge.svg)](https://docs.rs/cj_bitmask_vec)
+
 BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
 
 Items can be added with or without supplying bitmasks. Bitmask will default to zero if not supplied.
