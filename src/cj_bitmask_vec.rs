@@ -127,6 +127,12 @@ where
         self.inner.reserve(additional);
     }
 
+    /// Reserves the minimum capacity for at least additional more elements to be inserted in the given Vec
+    #[inline]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.inner.reserve_exact(additional);
+    }
+
     /// Removes and returns the element and bitmask at position index within the vector, shifting all elements after it to the left
     #[inline]
     pub fn remove_with_mask(&mut self, index: usize) -> BitmaskItem<B, T> {
