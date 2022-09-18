@@ -86,12 +86,26 @@ where
         self.inner.clear();
     }
 
+    /// Removes the specified range from the vector in bulk, returning all removed elements as an iterator
     #[inline]
     pub fn drain<R>(&mut self, range: R) -> Drain<'_, BitmaskItem<B, T>>
     where
         R: RangeBounds<usize>,
     {
         self.inner.drain(range)
+    }
+
+    /// Inserts an element with default bitmask at position index within the vector, shifting all elements after it to the right.
+    #[inline]
+    pub fn insert(&mut self, index: usize, value: T) {
+        self.inner
+            .insert(index, BitmaskItem::new(B::default(), value));
+    }
+
+    /// Inserts an element and bitmask at position index within the vector, shifting all elements after it to the right.
+    #[inline]
+    pub fn insert_with_mask(&mut self, index: usize, bitmask: B, value: T) {
+        self.inner.insert(index, BitmaskItem::new(bitmask, value));
     }
 
     #[inline]
@@ -847,5 +861,21 @@ mod test {
         let x: Vec<_> = v.drain(1..).collect();
         assert_eq!(v.len(), 1);
         assert_eq!(x.len(), 6);
+    }
+
+    #[test]
+    fn test_bitmask_vec_insert() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.insert(2, 500);
+        v.insert_with_mask(3, 0b11000000, 600);
+        assert_eq!(v.len(), 9);
     }
 }
