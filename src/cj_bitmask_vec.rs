@@ -139,6 +139,19 @@ where
         self.inner.remove(index)
     }
 
+    /// Removes an element without bitmask from the vector and returns it.
+    #[inline]
+    pub fn swap_remove(&mut self, index: usize) -> T {
+        let x = self.inner.swap_remove(index);
+        x.item
+    }
+
+    /// Removes an element without bitmask from the vector and returns it.
+    #[inline]
+    pub fn swap_with_mask_remove(&mut self, index: usize) -> BitmaskItem<B, T> {
+        self.inner.swap_remove(index)
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
