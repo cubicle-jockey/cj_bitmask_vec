@@ -17,21 +17,10 @@ where
         Self { bitmask, item }
     }
 
+    /// Returns true if all set flags in mask are matched in bitmask<br>
+    ///   <i>(bitmask & mask) == mask</i>
     pub fn matches_mask(&self, mask: &'a B) -> bool {
         self.bitmask.matches_mask(mask)
-    }
-}
-
-pub trait BitmaskItemX<'a, B> {
-    fn match_mask(&self, mask: &'a B) -> bool;
-}
-
-impl<'a, B, T> BitmaskItemX<'a, B> for BitmaskItem<B, T>
-where
-    B: Bitflag + CjMatchesMask<'a, B>,
-{
-    fn match_mask(&self, mask: &'a B) -> bool {
-        self.matches_mask(mask)
     }
 }
 
