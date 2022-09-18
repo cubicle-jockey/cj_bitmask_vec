@@ -47,6 +47,12 @@ where
         }
     }
 
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            inner: Vec::<BitmaskItem<B, T>>::with_capacity(capacity),
+        }
+    }
+
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
