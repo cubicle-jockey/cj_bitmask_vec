@@ -1,6 +1,6 @@
 [package]
 name = "cj_bitmask_vec"
-version = "0.1.2-dev"
+version = "0.1.2"
 edition = "2021"
 keywords = ["vec", "vector", "bit", "bitmask", "binary"]
 categories = ["encoding", "parsing"]
