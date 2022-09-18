@@ -1,7 +1,7 @@
 use crate::cj_bitmask_item::BitmaskItem;
 use cj_common::cj_binary::bitbuf::*;
 use std::ops::{Index, IndexMut};
-use std::slice::Iter;
+use std::slice::{Iter, IterMut};
 
 /// BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
 ///
@@ -128,7 +128,7 @@ where
         BitmaskVecIter::new(self.inner.iter())
     }
 
-    /// Returns a BitmaskVecIterWithMask for iterating over T.    
+    /// Returns a BitmaskVecIterWithMask for iterating over T and bitmask.    
     /// ```
     /// # use cj_common::prelude::CjMatchesMask;
     /// # use cj_bitmask_vec::{cj_bitmask_vec::*, cj_bitmask_item::*};
@@ -153,6 +153,82 @@ where
     pub fn iter_with_mask(&'a mut self) -> BitmaskVecIterWithMask<'a, B, T> {
         BitmaskVecIterWithMask::new(self.inner.iter())
     }
+
+    /// Returns a BitmaskVecIterMut for mutable iteration over T.
+    /// * this iter excludes bitmask. Use iter_with_mask_mut() instead if both T and bitmask are wanted.
+    /// ```
+    /// # use cj_bitmask_vec::{cj_bitmask_vec::*, cj_bitmask_item::*};
+    /// let mut v = BitmaskVec::<u8, i32>::new();
+    /// v.push_with_mask(0b00000000, 100);
+    /// v.push_with_mask(0b00000010, 101);
+    /// v.push_with_mask(0b00000010, 102);
+    /// v.push_with_mask(0b00000100, 103);
+    /// v.push_with_mask(0b00000011, 104);
+    /// v.push_with_mask(0b00000001, 105);
+    /// v.push_with_mask(0b00000000, 106);
+    ///
+    /// let mut total = 0;
+    /// let x = v.iter_mut();
+    /// for z in x {
+    ///     // here we modify T
+    ///     total += *z;
+    ///     *z *= 2;
+    /// }
+    ///
+    /// let mut total_2 = 0;
+    /// let x = v.iter();
+    /// for z in x {
+    ///     total_2 += *z;
+    /// }
+    ///
+    /// assert_eq!(total_2, total * 2)
+    /// ```
+    #[inline]
+    pub fn iter_mut(&'a mut self) -> BitmaskVecIterMut<'a, B, T> {
+        BitmaskVecIterMut::new(self.inner.iter_mut())
+    }
+
+    /// Returns a BitmaskVecIterWithMaskMut for mutable iteration over T and bitmask.    
+    /// ```
+    /// # use cj_common::prelude::{Bitflag, CjMatchesMask};
+    /// # use cj_bitmask_vec::{cj_bitmask_vec::*, cj_bitmask_item::*};
+    /// let mut v = BitmaskVec::<u8, i32>::new();
+    /// v.push_with_mask(0b00000000, 100);
+    /// v.push_with_mask(0b00000010, 101);
+    /// v.push_with_mask(0b00000010, 102);
+    /// v.push_with_mask(0b00000100, 103);
+    /// v.push_with_mask(0b00000011, 104);
+    /// v.push_with_mask(0b00000001, 105);
+    /// v.push_with_mask(0b00000000, 106);
+    ///
+    /// let mut total = 0;
+    /// let x = v.iter_with_mask_mut();
+    /// for z in x {
+    ///     total += z.item;
+    ///     // here we modify T
+    ///     z.item *= 2;
+    ///
+    ///     // and here we modify the 8th bit of the bitmask.
+    ///     // - note that set_bit() only modifies a single bit,
+    ///     //   leaving the rest of bitmask unchanged.
+    ///     z.bitmask.set_bit(7, true);
+    /// }
+    /// // verify the changes from above
+    /// let mut total_2 = 0;
+    /// let x = v.iter_with_mask();
+    /// for z in x {
+    ///     total_2 += z.item;
+    ///     // test that the 8th bit is now set.
+    ///     assert!(z.matches_mask(&0b10000000));
+    /// }
+    /// // test that T was modified
+    /// assert_eq!(total_2, total * 2);
+    ///
+    /// ```
+    #[inline]
+    pub fn iter_with_mask_mut(&'a mut self) -> BitmaskVecIterWithMaskMut<'a, B, T> {
+        BitmaskVecIterWithMaskMut::new(self.inner.iter_mut())
+    }
 }
 
 impl<'a, B, T> Index<usize> for BitmaskVec<B, T>
@@ -175,6 +251,7 @@ where
     }
 }
 
+// =================================================================================================
 pub struct BitmaskVecIter<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
@@ -210,6 +287,7 @@ where
     }
 }
 
+// =================================================================================================
 pub struct BitmaskVecIterWithMask<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
@@ -250,6 +328,86 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_inner()
+    }
+}
+
+// =================================================================================================
+pub struct BitmaskVecIterMut<'a, B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B>,
+{
+    inner: IterMut<'a, BitmaskItem<B, T>>,
+}
+
+impl<'a, B, T> BitmaskVecIterMut<'a, B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B>,
+{
+    pub fn new(i: IterMut<'a, BitmaskItem<B, T>>) -> Self {
+        Self { inner: i }
+    }
+
+    #[inline]
+    fn next_inner_mut(&mut self) -> Option<&'a mut T> {
+        if let Some(item) = self.inner.next() {
+            return Some(&mut item.item);
+        }
+        None
+    }
+}
+
+impl<'a, B, T> Iterator for BitmaskVecIterMut<'a, B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B>,
+{
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next_inner_mut()
+    }
+}
+
+// =================================================================================================
+pub struct BitmaskVecIterWithMaskMut<'a, B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    inner: IterMut<'a, BitmaskItem<B, T>>,
+}
+
+impl<'a, B, T> BitmaskVecIterWithMaskMut<'a, B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    pub fn new(i: IterMut<'a, BitmaskItem<B, T>>) -> Self {
+        Self { inner: i }
+    }
+    #[inline]
+    fn next_inner_mut(&mut self) -> Option<&'a mut BitmaskItem<B, T>> {
+        if let Some(item) = self.inner.next() {
+            return Some(item);
+        }
+        None
+    }
+
+    pub fn filter_mask(&mut self, mask: &'a B) -> Option<&'a mut BitmaskItem<B, T>> {
+        while let Some(item) = self.inner.next() {
+            if item.matches_mask(mask) {
+                return Some(item);
+            }
+        }
+        None
+    }
+}
+
+impl<'a, B, T> Iterator for BitmaskVecIterWithMaskMut<'a, B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    type Item = &'a mut BitmaskItem<B, T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next_inner_mut()
     }
 }
 
@@ -330,6 +488,7 @@ where
 #[cfg(test)]
 mod test {
     use crate::cj_bitmask_vec::BitmaskVec;
+    use cj_common::prelude::Bitflag;
 
     #[test]
     fn test_bitmask_vec() {
@@ -483,5 +642,62 @@ mod test {
             count += 1;
         }
         assert_eq!(count, 3);
+    }
+
+    #[test]
+    fn test_bitmask_vec_iter_mut() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let mut total = 0;
+        let x = v.iter_mut();
+        for z in x {
+            total += *z;
+            *z *= 2;
+        }
+
+        let mut total_2 = 0;
+        let x = v.iter();
+        for z in x {
+            total_2 += *z;
+        }
+
+        assert_eq!(total_2, total * 2)
+    }
+
+    #[test]
+    fn test_bitmask_vec_iter_masked_mut() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let mut total = 0;
+        let x = v.iter_with_mask_mut();
+        for z in x {
+            total += z.item;
+            z.item *= 2;
+
+            z.bitmask.set_bit(7, true);
+        }
+
+        let mut total_2 = 0;
+        let x = v.iter_with_mask();
+        for z in x {
+            total_2 += z.item;
+            assert!(z.matches_mask(&0b10000000));
+        }
+
+        assert_eq!(total_2, total * 2)
     }
 }
