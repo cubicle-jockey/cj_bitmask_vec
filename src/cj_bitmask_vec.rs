@@ -252,6 +252,7 @@ where
 }
 
 // =================================================================================================
+/// Iter that returns T (excludes bitmask)
 pub struct BitmaskVecIter<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
@@ -288,6 +289,7 @@ where
 }
 
 // =================================================================================================
+/// Iter that returns BitmaskItem, containing both T and bitmask.
 pub struct BitmaskVecIterWithMask<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
@@ -332,6 +334,7 @@ where
 }
 
 // =================================================================================================
+/// Iter that returns mutable T (excludes bitmask)
 pub struct BitmaskVecIterMut<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
@@ -368,6 +371,7 @@ where
 }
 
 // =================================================================================================
+/// Iter that returns mutable BitmaskItem, containing both T and bitmask.
 pub struct BitmaskVecIterWithMaskMut<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,

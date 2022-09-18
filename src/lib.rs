@@ -141,9 +141,13 @@
 //!     // test that T was modified
 //!     assert_eq!(total_2, total * 2);
 //! ```
+
+/// struct that pairs bitmask with T
 pub mod cj_bitmask_item;
+/// Vec of BitmaskItem
 pub mod cj_bitmask_vec;
 
+/// easiest way to import all functionality
 pub mod prelude {
     pub use crate::cj_bitmask_item::*;
     pub use crate::cj_bitmask_vec::*;
