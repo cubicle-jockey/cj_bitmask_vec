@@ -47,10 +47,16 @@ where
         }
     }
 
+    /// Constructs a new, empty Vec with at least the specified capacity.
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: Vec::<BitmaskItem<B, T>>::with_capacity(capacity),
         }
+    }
+
+    /// Returns the number of elements the vector can hold without reallocating.
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
     }
 
     #[inline]
@@ -709,5 +715,12 @@ mod test {
         }
 
         assert_eq!(total_2, total * 2)
+    }
+
+    #[test]
+    fn test_bitmask_vec_with_capacity() {
+        let mut v = BitmaskVec::<u8, i32>::with_capacity(10);
+
+        assert_eq!(10, v.capacity())
     }
 }
