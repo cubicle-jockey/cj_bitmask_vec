@@ -1,7 +1,8 @@
 use crate::cj_bitmask_item::BitmaskItem;
 use cj_common::cj_binary::bitbuf::*;
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, RangeBounds};
 use std::slice::{Iter, IterMut};
+use std::vec::Drain;
 
 /// BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
 ///
@@ -45,6 +46,116 @@ where
         Self {
             inner: Vec::<BitmaskItem<B, T>>::new(),
         }
+    }
+
+    /// Constructs a new, empty Vec with at least the specified capacity.
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            inner: Vec::<BitmaskItem<B, T>>::with_capacity(capacity),
+        }
+    }
+
+    /// Returns the number of elements the vector can hold without reallocating.
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
+    /// Moves all the elements of other into self, leaving other empty.
+    #[inline]
+    pub fn append(&mut self, other: &mut Self) {
+        self.inner.append(&mut other.inner)
+    }
+
+    /// Extracts a slice containing the entire vector.
+    #[inline]
+    pub fn as_slice(&self) -> &[BitmaskItem<B, T>] {
+        self.inner.as_slice()
+    }
+
+    /// Extracts a mutable slice containing the entire vector.
+    #[inline]
+    pub fn as_mut_slice(&mut self) -> &mut [BitmaskItem<B, T>] {
+        self.inner.as_mut_slice()
+    }
+
+    /// Clears the vector, removing all values.<br>
+    /// Note that this method has no effect on the allocated capacity of the vector.
+    #[inline]
+    pub fn clear(&mut self) {
+        self.inner.clear();
+    }
+
+    /// Removes the specified range from the vector in bulk, returning all removed elements as an iterator
+    #[inline]
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, BitmaskItem<B, T>>
+    where
+        R: RangeBounds<usize>,
+    {
+        self.inner.drain(range)
+    }
+
+    /// Inserts an element with default bitmask at position index within the vector, shifting all elements after it to the right.
+    #[inline]
+    pub fn insert(&mut self, index: usize, value: T) {
+        self.inner
+            .insert(index, BitmaskItem::new(B::default(), value));
+    }
+
+    /// Inserts an element and bitmask at position index within the vector, shifting all elements after it to the right.
+    #[inline]
+    pub fn insert_with_mask(&mut self, index: usize, bitmask: B, value: T) {
+        self.inner.insert(index, BitmaskItem::new(bitmask, value));
+    }
+
+    /// Returns true if the vector contains no elements.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    /// Removes and returns the element without bitmask at position index within the vector, shifting all elements after it to the left
+    #[inline]
+    pub fn remove(&mut self, index: usize) -> T {
+        let x = self.inner.remove(index);
+        x.item
+    }
+
+    /// Reserves capacity for at least additional more elements to be inserted in the given Vec
+    #[inline]
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional);
+    }
+
+    /// Reserves the minimum capacity for at least additional more elements to be inserted in the given Vec
+    #[inline]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.inner.reserve_exact(additional);
+    }
+
+    /// Removes and returns the element and bitmask at position index within the vector, shifting all elements after it to the left
+    #[inline]
+    pub fn remove_with_mask(&mut self, index: usize) -> BitmaskItem<B, T> {
+        self.inner.remove(index)
+    }
+
+    /// Removes an element without bitmask from the vector and returns it.
+    #[inline]
+    pub fn swap_remove(&mut self, index: usize) -> T {
+        let x = self.inner.swap_remove(index);
+        x.item
+    }
+
+    /// Removes an element and bitmask from the vector and returns it.
+    #[inline]
+    pub fn swap_with_mask_remove(&mut self, index: usize) -> BitmaskItem<B, T> {
+        self.inner.swap_remove(index)
+    }
+
+    /// Shortens the vector, keeping the first len elements and dropping the rest
+    #[inline]
+    pub fn truncate(&mut self, len: usize) {
+        self.inner.truncate(len);
     }
 
     #[inline]
@@ -703,5 +814,133 @@ mod test {
         }
 
         assert_eq!(total_2, total * 2)
+    }
+
+    #[test]
+    fn test_bitmask_vec_with_capacity() {
+        let v = BitmaskVec::<u8, i32>::with_capacity(10);
+
+        assert_eq!(10, v.capacity())
+    }
+
+    #[test]
+    fn test_bitmask_vec_append() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let mut v2 = BitmaskVec::<u8, i32>::new();
+        v2.push_with_mask(0b00000000, 100);
+        v2.push_with_mask(0b00000010, 101);
+        v2.push_with_mask(0b00000010, 102);
+        v2.push_with_mask(0b00000100, 103);
+        v2.push_with_mask(0b00000011, 104);
+        v2.push_with_mask(0b00000001, 105);
+        v2.push_with_mask(0b00000000, 106);
+
+        v.append(&mut v2);
+
+        assert_eq!(v.len(), 14);
+        assert_eq!(v2.len(), 0);
+    }
+
+    #[test]
+    fn test_bitmask_vec_as_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        assert_eq!(v.as_slice().len(), 7);
+    }
+
+    #[test]
+    fn test_bitmask_vec_as_mut_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+        {
+            let s = v.as_mut_slice();
+            s[1].item = 500;
+            s[1].bitmask.set_bit(7, true);
+        }
+        assert_eq!(v[1], 500);
+        // hmmm.  TO.DO. maybe i should change index/indexmut to return BitmaskItem instead of just T...
+        assert_eq!(v.iter_with_mask().nth(1).unwrap().bitmask, 0b10000010);
+    }
+
+    #[test]
+    fn test_bitmask_vec_clear() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+        v.clear();
+        assert_eq!(v.len(), 0);
+    }
+
+    #[test]
+    fn test_bitmask_vec_drain() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let x: Vec<_> = v.drain(1..).collect();
+        assert_eq!(v.len(), 1);
+        assert_eq!(x.len(), 6);
+    }
+
+    #[test]
+    fn test_bitmask_vec_insert() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.insert(2, 500);
+        v.insert_with_mask(3, 0b11000000, 600);
+        assert_eq!(v.len(), 9);
+    }
+
+    #[test]
+    fn test_bitmask_vec_reserve() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.reserve(10);
+        assert!(v.capacity() >= 17);
     }
 }
