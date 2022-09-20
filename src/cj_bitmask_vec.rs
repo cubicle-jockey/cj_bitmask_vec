@@ -148,6 +148,15 @@ where
         self.inner.resize(new_len, value);
     }
 
+    /// Clones and appends all elements in a slice to the Vec.
+    #[inline]
+    pub fn extend_from_slice(&mut self, other: &[BitmaskItem<B, T>])
+    where
+        T: Clone,
+    {
+        self.inner.extend_from_slice(other);
+    }
+
     /// Removes an element without bitmask from the vector and returns it.
     #[inline]
     pub fn swap_remove(&mut self, index: usize) -> T {
@@ -967,5 +976,22 @@ mod test {
 
         v.resize(16, BitmaskItem::new(3, 799));
         assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_extend_from_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let mut v2 = BitmaskVec::<u8, i32>::new();
+        v2.extend_from_slice(v.as_slice());
+
+        assert_eq!(v2.len(), 7);
     }
 }
