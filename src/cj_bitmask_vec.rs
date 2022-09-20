@@ -166,6 +166,12 @@ where
         self.inner.extend_from_slice(other);
     }
 
+    /// Converts the vector into Box<[BitmaskItem<B, T>]>
+    #[inline]
+    pub fn into_boxed_slice(self) -> Box<[BitmaskItem<B, T>]> {
+        self.inner.into_boxed_slice()
+    }
+
     /// Removes an element without bitmask from the vector and returns it.
     #[inline]
     pub fn swap_remove(&mut self, index: usize) -> T {
@@ -1023,5 +1029,21 @@ mod test {
         v2.extend_from_slice(v.as_slice());
 
         assert_eq!(v2.len(), 7);
+    }
+
+    #[test]
+    fn test_bitmask_vec_into_boxed_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let x = v.into_boxed_slice();
+
+        assert_eq!(x.len(), 7);
     }
 }
