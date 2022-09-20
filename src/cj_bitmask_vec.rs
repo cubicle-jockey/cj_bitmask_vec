@@ -139,6 +139,58 @@ where
         self.inner.remove(index)
     }
 
+    /// Resizes the Vec in-place using default bitmask so that len is equal to new_len
+    #[inline]
+    pub fn resize(&mut self, new_len: usize, value: T)
+    where
+        T: Clone,
+    {
+        self.inner
+            .resize(new_len, BitmaskItem::new(B::default(), value));
+    }
+
+    /// Resizes the Vec in-place so that len is equal to new_len
+    #[inline]
+    pub fn resize_with_mask(&mut self, new_len: usize, bitmask: B, value: T)
+    where
+        T: Clone,
+    {
+        self.inner.resize(new_len, BitmaskItem::new(bitmask, value));
+    }
+
+    /// Resizes the Vec in-place so that len is equal to new_len
+    #[inline]
+    pub fn resize_with_bitmask_item(&mut self, new_len: usize, value: BitmaskItem<B, T>)
+    where
+        T: Clone,
+    {
+        self.inner.resize(new_len, value);
+    }
+
+    /// Resizes the Vec in-place so that len is equal to new_len.
+    #[inline]
+    pub fn resize_with<F>(&mut self, new_len: usize, f: F)
+    where
+        F: FnMut() -> BitmaskItem<B, T>,
+    {
+        self.inner.resize_with(new_len, f);
+    }
+
+    /// Clones and appends all elements in a slice to the Vec.
+    #[inline]
+    pub fn extend_from_slice(&mut self, other: &[BitmaskItem<B, T>])
+    where
+        T: Clone,
+    {
+        self.inner.extend_from_slice(other);
+    }
+
+    /// Converts the vector into Box<[BitmaskItem<B, T>]>
+    #[inline]
+    pub fn into_boxed_slice(self) -> Box<[BitmaskItem<B, T>]> {
+        self.inner.into_boxed_slice()
+    }
+
     /// Removes an element without bitmask from the vector and returns it.
     #[inline]
     pub fn swap_remove(&mut self, index: usize) -> T {
@@ -603,6 +655,7 @@ where
 #[cfg(test)]
 mod test {
     use crate::cj_bitmask_vec::BitmaskVec;
+    use crate::prelude::BitmaskItem;
     use cj_common::prelude::Bitflag;
 
     #[test]
@@ -942,5 +995,104 @@ mod test {
 
         v.reserve(10);
         assert!(v.capacity() >= 17);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.resize(16, 799);
+        assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize_with_mask() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.resize_with_mask(16, 3, 799);
+        assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize_with_bitmask_item() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.resize_with_bitmask_item(16, BitmaskItem::new(3, 799));
+        assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize_with() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let b = 0b00111111;
+        let mut i = 400;
+
+        v.resize_with(16, || {
+            i += 1;
+            BitmaskItem::new(b, i)
+        });
+        assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_extend_from_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let mut v2 = BitmaskVec::<u8, i32>::new();
+        v2.extend_from_slice(v.as_slice());
+
+        assert_eq!(v2.len(), 7);
+    }
+
+    #[test]
+    fn test_bitmask_vec_into_boxed_slice() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        let x = v.into_boxed_slice();
+
+        assert_eq!(x.len(), 7);
     }
 }
