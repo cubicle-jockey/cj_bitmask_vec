@@ -139,9 +139,28 @@ where
         self.inner.remove(index)
     }
 
+    /// Resizes the Vec in-place using default bitmask so that len is equal to new_len
+    #[inline]
+    pub fn resize(&mut self, new_len: usize, value: T)
+    where
+        T: Clone,
+    {
+        self.inner
+            .resize(new_len, BitmaskItem::new(B::default(), value));
+    }
+
     /// Resizes the Vec in-place so that len is equal to new_len
     #[inline]
-    pub fn resize(&mut self, new_len: usize, value: BitmaskItem<B, T>)
+    pub fn resize_with_mask(&mut self, new_len: usize, bitmask: B, value: T)
+    where
+        T: Clone,
+    {
+        self.inner.resize(new_len, BitmaskItem::new(bitmask, value));
+    }
+
+    /// Resizes the Vec in-place so that len is equal to new_len
+    #[inline]
+    pub fn resize_with_bitmask_item(&mut self, new_len: usize, value: BitmaskItem<B, T>)
     where
         T: Clone,
     {
@@ -989,7 +1008,37 @@ mod test {
         v.push_with_mask(0b00000001, 105);
         v.push_with_mask(0b00000000, 106);
 
-        v.resize(16, BitmaskItem::new(3, 799));
+        v.resize(16, 799);
+        assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize_with_mask() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.resize_with_mask(16, 3, 799);
+        assert_eq!(v.len(), 16);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize_with_bitmask_item() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.resize_with_bitmask_item(16, BitmaskItem::new(3, 799));
         assert_eq!(v.len(), 16);
     }
 
