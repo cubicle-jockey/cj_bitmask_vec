@@ -1,7 +1,7 @@
 use cj_common::cj_binary::bitbuf::*;
 
 /// BitmaskItem pairs T with a bitmask
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BitmaskItem<B, T>
 where
     B: Bitflag,
