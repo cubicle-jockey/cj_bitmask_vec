@@ -139,6 +139,15 @@ where
         self.inner.remove(index)
     }
 
+    /// Resizes the Vec in-place so that len is equal to new_len
+    #[inline]
+    pub fn resize(&mut self, new_len: usize, value: BitmaskItem<B, T>)
+    where
+        T: Clone,
+    {
+        self.inner.resize(new_len, value);
+    }
+
     /// Removes an element without bitmask from the vector and returns it.
     #[inline]
     pub fn swap_remove(&mut self, index: usize) -> T {
@@ -603,6 +612,7 @@ where
 #[cfg(test)]
 mod test {
     use crate::cj_bitmask_vec::BitmaskVec;
+    use crate::prelude::BitmaskItem;
     use cj_common::prelude::Bitflag;
 
     #[test]
@@ -942,5 +952,20 @@ mod test {
 
         v.reserve(10);
         assert!(v.capacity() >= 17);
+    }
+
+    #[test]
+    fn test_bitmask_vec_resize() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+        v.push_with_mask(0b00000010, 102);
+        v.push_with_mask(0b00000100, 103);
+        v.push_with_mask(0b00000011, 104);
+        v.push_with_mask(0b00000001, 105);
+        v.push_with_mask(0b00000000, 106);
+
+        v.resize(16, BitmaskItem::new(3, 799));
+        assert_eq!(v.len(), 16);
     }
 }
