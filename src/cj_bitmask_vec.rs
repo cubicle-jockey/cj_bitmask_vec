@@ -394,6 +394,15 @@ where
     }
 }
 
+impl<'a, B, T> Default for BitmaskVec<B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a, B, T> Index<usize> for BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
@@ -553,12 +562,7 @@ where
     }
 
     pub fn filter_mask(&mut self, mask: &'a B) -> Option<&'a mut BitmaskItem<B, T>> {
-        for item in self.inner.by_ref() {
-            if item.matches_mask(mask) {
-                return Some(item);
-            }
-        }
-        None
+        self.inner.by_ref().find(|item| item.matches_mask(mask))
     }
 }
 
