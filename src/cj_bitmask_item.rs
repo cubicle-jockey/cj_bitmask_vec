@@ -20,6 +20,7 @@ where
 
     /// Returns true if all set flags in mask are matched in bitmask<br>
     ///   <i>(bitmask & mask) == mask</i>
+    #[inline]
     pub fn matches_mask(&self, mask: &'a B) -> bool {
         self.bitmask.matches_mask(mask)
     }
