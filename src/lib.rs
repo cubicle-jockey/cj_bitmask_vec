@@ -16,6 +16,17 @@
 //!     v.push_with_mask(0b00000100, 103);
 //!     v.push_with_mask(0b00000110, 104);
 //!     v.push(105);  // <- bitmask will default to zero
+//!     // or an easier way to add items   
+//!     v += (0b00000000, 106);
+//!     v += (0b00010000, 107);
+//!     v += (0b00100000, 108);
+//!     v += (0b00000100, 109);
+//!     v += (0b10000001, 110);
+//!     v += (0b00000001, 111);
+//!     v += (0b00000000, 112);
+//!     v += 113; // <- bitmask will default to zero
+//!
+//!     assert_eq!(v[6], 106);
 //!     
 //!     // here we're going to iterate all items that have bitmask bit 1 set
 //!     let mut count = 0;
