@@ -1,6 +1,6 @@
 use crate::cj_bitmask_item::BitmaskItem;
 use cj_common::cj_binary::bitbuf::*;
-use std::ops::{Index, IndexMut, RangeBounds};
+use std::ops::{AddAssign, Index, IndexMut, RangeBounds};
 use std::slice::{Iter, IterMut};
 use std::vec::Drain;
 
@@ -420,6 +420,36 @@ where
 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.inner[index].item
+    }
+}
+
+impl<'a, B, T> AddAssign<(B, T)> for BitmaskVec<B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: (B, T)) {
+        self.push_with_mask(rhs.0, rhs.1);
+    }
+}
+
+impl<'a, B, T> AddAssign<T> for BitmaskVec<B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: T) {
+        self.push(rhs);
+    }
+}
+
+impl<'a, B, T> AddAssign for BitmaskVec<B, T>
+where
+    B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
+{
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: Self) {
+        self.inner.extend(rhs.inner);
     }
 }
 
@@ -1093,5 +1123,58 @@ mod test {
         let x = v.into_boxed_slice();
 
         assert_eq!(x.len(), 7);
+    }
+
+    #[test]
+    fn test_bitmask_vec_add_assign() {
+        let mut v1 = BitmaskVec::<u8, i32>::new();
+        v1 += (0b00000000, 100);
+        v1 += (0b00000010, 101);
+        v1 += (0b00000010, 102);
+        v1 += (0b00000100, 103);
+        v1 += (0b00000011, 104);
+        v1 += (0b00000001, 105);
+        v1 += (0b00000000, 106);
+
+        assert_eq!(v1[2], 102);
+    }
+
+    #[test]
+    fn test_bitmask_vec_add_assign_2() {
+        let mut v1 = BitmaskVec::<u8, i32>::new();
+        v1 += 100;
+        v1 += 101;
+        v1 += 102;
+        v1 += 103;
+        v1 += 104;
+        v1 += 105;
+        v1 += 106;
+
+        assert_eq!(v1[2], 102);
+    }
+
+    #[test]
+    fn test_bitmask_vec_add_assign_3() {
+        let mut v1 = BitmaskVec::<u8, i32>::new();
+        v1 += (0b00000000, 100);
+        v1 += (0b00000010, 101);
+        v1 += (0b00000010, 102);
+        v1 += (0b00000100, 103);
+        v1 += (0b00000011, 104);
+        v1 += (0b00000001, 105);
+        v1 += (0b00000000, 106);
+
+        let mut v2 = BitmaskVec::<u8, i32>::new();
+        v2 += (0b00000000, 100);
+        v2 += (0b00000010, 101);
+        v2 += (0b00000010, 102);
+        v2 += (0b00000100, 103);
+        v2 += (0b00000011, 104);
+        v2 += (0b00000001, 105);
+        v2 += (0b00000000, 106);
+
+        v1 += v2;
+
+        assert_eq!(v1[9], 102);
     }
 }
