@@ -1,13 +1,13 @@
-//! BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.
+//! BitmaskVec is a vector that pairs bitmasks with T. Bitmasks u8 through u128 are supported.
 //!
-//! Items can be added with or without supplying bitmasks. Bitmask will default to zero if not supplied.
+//! Items can be added with or without supplying bitmasks. The bitmask will default to zero if not supplied.
 //!
-//! Filtering iterator using bitmasks
+//! Filtering iterator using bitmasks:
 //! ```
 //!     use cj_bitmask_vec::prelude::*;
 //!    
 //!     let mut v = BitmaskVec::<u8, i32>::new();
-//!     // bitmasks hold whatever meaning the developer gives them.
+//!     // Bitmasks hold whatever meaning the developer gives them.
 //!     // In this example any u8 is a valid bitmask.
 //!     //                (bitmask)  (T)      
 //!     v.push_with_mask(0b00000000, 100);
@@ -28,20 +28,20 @@
 //!
 //!     assert_eq!(v[6], 106);
 //!     
-//!     // here we're going to iterate all items that have bitmask bit 1 set
+//!     // here we're going to iterate over all items that have bitmask bit 1 set
 //!     let mut count = 0;
 //!     let mut iter = v.iter_with_mask();
 //!     //                                (mask with bit 1 set)
 //!     //                                               V
 //!     while let Some(pair) = iter.filter_mask(&0b00000010) {
-//!         // only T 101, 102 and 104 in the Vec above have
-//!         // bitmask bit one set.
+//!         // only items 101, 102, and 104 in the Vec above have
+//!         // bitmask bit 1 set.
 //!         assert!([101, 102, 104].contains(&pair.item));
 //!         count += 1;
 //!     }
 //!     assert_eq!(count, 3);
 //! ```
-//! Iterating over T
+//! Iterating over T:
 //! ```
 //!     use cj_bitmask_vec::prelude::*;
 //!     
@@ -61,7 +61,7 @@
 //!     }
 //!     assert_eq!(total, 721);
 //! ```
-//! Iterating over T and bitmask.
+//! Iterating over T and bitmask:
 //! ```
 //!     use cj_bitmask_vec::prelude::*;
 //!     use cj_common::prelude::CjMatchesMask;
@@ -83,7 +83,7 @@
 //!     }
 //!     assert_eq!(total, 306);
 //! ```
-//! Mutably iterating over T
+//! Mutably iterating over T:
 //! ```
 //!     use cj_bitmask_vec::prelude::*;
 //!
@@ -97,7 +97,7 @@
 //!     v.push_with_mask(0b00000000, 106);
 //!
 //!     let mut total = 0;
-//!     // iter_mut exludes the bitmask
+//!     // iter_mut excludes the bitmask
 //!     let x = v.iter_mut();
 //!     for z in x {
 //!         // here we modify T
@@ -114,7 +114,7 @@
 //!
 //!     assert_eq!(total_2, total * 2);
 //! ```
-//! Mutably iterating over T and bitmask
+//! Mutably iterating over T and bitmask:
 //! ```
 //!     use cj_bitmask_vec::prelude::*;
 //!     use cj_common::prelude::{Bitflag, CjMatchesMask};
@@ -136,8 +136,8 @@
 //!         z.item *= 2;
 //!
 //!         // here we modify the 8th bit of the bitmask.
-//!         // - note that set_bit() only modifies a single bit,
-//!         //   leaving the rest of bitmask unchanged.
+//!         // - Note that set_bit() only modifies a single bit,
+//!         //   leaving the rest of the bitmask unchanged.
 //!         z.bitmask.set_bit(7, true);
 //!     }
 //!     
@@ -153,12 +153,12 @@
 //!     assert_eq!(total_2, total * 2);
 //! ```
 
-/// struct that pairs bitmask with T
+/// Struct that pairs bitmask with T
 pub mod cj_bitmask_item;
 /// Vec of BitmaskItem
 pub mod cj_bitmask_vec;
 
-/// easiest way to import all functionality
+/// Easiest way to import all functionality
 pub mod prelude {
     pub use crate::cj_bitmask_item::*;
     pub use crate::cj_bitmask_vec::*;

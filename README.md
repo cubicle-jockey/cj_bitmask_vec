@@ -5,11 +5,11 @@
 [![Crate](https://img.shields.io/crates/v/cj_bitmask_vec.svg)](https://crates.io/crates/cj_bitmask_vec)
 [![API](https://docs.rs/cj_bitmask_vec/badge.svg)](https://docs.rs/cj_bitmask_vec)
 
-BitmaskVec is a vec that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
+BitmaskVec is a vector that pairs bitmasks with T. Bitmasks u8 through u128 are supported.<br>
 
-Items can be added with or without supplying bitmasks. Bitmask will default to zero if not supplied.
+Items can be added with or without supplying bitmasks. The bitmask will default to zero if not supplied.
 
-Filtering iterator using bitmasks
+Filtering iterator using bitmasks:
 
 ```rust
 // filtering by bitmask
@@ -17,7 +17,7 @@ fn main() {
     use cj_bitmask_vec::prelude::*;
 
     let mut v = BitmaskVec::<u8, i32>::new();
-    // bitmasks hold whatever meaning the developer gives them.
+    // Bitmasks hold whatever meaning the developer gives them.
     // In this example any u8 is a valid bitmask.
     //                (bitmask)  (T)      
     v.push_with_mask(0b00000000, 100);
@@ -25,7 +25,7 @@ fn main() {
     v.push_with_mask(0b00000011, 102);
     v.push_with_mask(0b00000100, 103);
     v.push_with_mask(0b00000110, 104);
-    v.push(105);  // <- bitmask will default to zero
+    v.push(105);  // <- the bitmask will default to zero
     // or an easier way to add items   
     v += (0b00000000, 106);
     v += (0b00010000, 107);
@@ -38,14 +38,14 @@ fn main() {
 
     assert_eq!(v[6], 106);
 
-    // here we're going to iterate all items that have bitmask bit 1 set
+    // here we're going to iterate over all items that have bitmask bit 1 set
     let mut count = 0;
     let mut iter = v.iter_with_mask();
     //                                (mask with bit 1 set)
     //                                               V
     while let Some(pair) = iter.filter_mask(&0b00000010) {
-        // only T 101, 102 and 104 in the Vec above have
-        // bitmask bit one set.
+        // only items 101, 102, and 104 in the Vec above have
+        // bitmask bit 1 set.
         assert!([101, 102, 104].contains(&pair.item));
         count += 1;
     }
@@ -53,7 +53,7 @@ fn main() {
 }
 ```
 
-Iterating over T
+Iterating over T:
 
 ```rust
 fn main() {
@@ -77,7 +77,7 @@ fn main() {
 }
 ```
 
-Iterating over T and bitmask.
+Iterating over T and bitmask:
 
 ```rust
 fn main() {
@@ -103,7 +103,7 @@ fn main() {
 }
 ```
 
-Mutably iterating over T
+Mutably iterating over T:
 
 ```rust
 fn main() {
@@ -119,7 +119,7 @@ fn main() {
     v.push_with_mask(0b00000000, 106);
 
     let mut total = 0;
-    // iter_mut exludes the bitmask
+    // iter_mut excludes the bitmask
     let x = v.iter_mut();
     for z in x {
         // here we modify T
@@ -138,7 +138,7 @@ fn main() {
 }
 ```
 
-Mutably iterating over T and bitmask
+Mutably iterating over T and bitmask:
 
 ```rust
 fn main() {
@@ -162,8 +162,8 @@ fn main() {
         z.item *= 2;
 
         // here we modify the 8th bit of the bitmask.
-        // - note that set_bit() only modifies a single bit,
-        //   leaving the rest of bitmask unchanged.
+        // - Note that set_bit() only modifies a single bit,
+        //   leaving the rest of the bitmask unchanged.
         z.bitmask.set_bit(7, true);
     }
 
@@ -179,3 +179,33 @@ fn main() {
     assert_eq!(total_2, total * 2);
 }
 ```
+
+## Benchmarks
+
+This crate includes comprehensive benchmarks to measure the performance of various BitmaskVec operations. The benchmarks cover:
+
+- **Basic Operations**: `new()`, `with_capacity()`, `push()`, `push_with_mask()`
+- **Indexing Operations**: Index access, `pop()`, `pop_with_mask()`
+- **Iteration Operations**: `iter()`, `iter_with_mask()`, `iter_mut()`, `iter_with_mask_mut()`
+- **Filtering Operations**: `filter_mask()`, mask matching during iteration
+- **Collection Operations**: `append()`, `clear()`, `resize()`, `resize_with_mask()`
+- **Different Bitmask Types**: Performance comparison across u8, u16, u32, and u64 bitmasks
+
+### Running Benchmarks
+
+To run the benchmarks:
+
+```bash
+cargo bench
+```
+
+This will run all benchmarks and generate detailed performance reports. The benchmarks test with different data sizes (100, 1000, and 10000 elements) to show how performance scales.
+
+### Benchmark Results
+
+The benchmarks will generate HTML reports (if you have gnuplot installed) in the `target/criterion/` directory, providing detailed performance analysis including:
+
+- Timing measurements with statistical analysis
+- Performance comparisons across different input sizes
+- Regression detection across benchmark runs
+- Detailed plots and charts (with gnuplot)

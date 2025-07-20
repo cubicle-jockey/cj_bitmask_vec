@@ -34,7 +34,7 @@ where
         Self { bitmask, item }
     }
 
-    /// Returns true if all set flags in mask are matched in bitmask<br>
+    /// Returns true if all set flags in the mask are matched in the bitmask<br>
     ///   <i>(bitmask & mask) == mask</i>
     #[inline]
     pub fn matches_mask(&self, mask: &'a B) -> bool {
