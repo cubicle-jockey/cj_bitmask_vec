@@ -14,6 +14,7 @@ impl<'a, B, T> BitmaskItem<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
 {
+    #[inline]
     pub fn new(bitmask: B, item: T) -> Self {
         Self { bitmask, item }
     }
