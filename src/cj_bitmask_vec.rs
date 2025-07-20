@@ -42,6 +42,18 @@ impl<'a, B, T> BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Creates a new, empty `BitmaskVec<B, T>`.
+    ///
+    /// The vector will not allocate until elements are pushed onto it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// assert_eq!(vec.len(), 0);
+    /// assert_eq!(vec.capacity(), 0);
+    /// ```
     pub fn new() -> Self {
         Self {
             inner: Vec::<BitmaskItem<B, T>>::new(),
@@ -210,12 +222,44 @@ where
         self.inner.truncate(len);
     }
 
+    /// Returns the number of elements in the vector, also referred to as its 'length'.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// assert_eq!(vec.len(), 0);
+    /// 
+    /// vec.push(42);
+    /// vec.push_with_mask(0b00000001, 100);
+    /// assert_eq!(vec.len(), 2);
+    /// ```
     #[inline]
     pub fn len(&self) -> usize {
         self.inner.len()
     }
 
-    /// Pushes T and a default bitmask of zero.
+    /// Appends an element to the back of the vector with a default bitmask of zero.
+    ///
+    /// This is equivalent to calling `push_with_mask(B::default(), value)`.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The element to append to the vector
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push(42);
+    /// vec.push(100);
+    /// 
+    /// assert_eq!(vec.len(), 2);
+    /// assert_eq!(vec[0], 42);
+    /// assert_eq!(vec[1], 100);
+    /// ```
     #[inline]
     pub fn push(&mut self, value: T) {
         self.inner.push(BitmaskItem::new(B::default(), value));

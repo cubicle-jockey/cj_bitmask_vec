@@ -14,6 +14,21 @@ impl<'a, B, T> BitmaskItem<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
 {
+    /// Creates a new `BitmaskItem<B, T>` with the specified bitmask and item.
+    ///
+    /// # Arguments
+    ///
+    /// * `bitmask` - The bitmask to associate with the item
+    /// * `item` - The item to store
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let item = BitmaskItem::new(0b00000101u8, 42i32);
+    /// assert_eq!(item.bitmask, 0b00000101u8);
+    /// assert_eq!(item.item, 42i32);
+    /// ```
     #[inline]
     pub fn new(bitmask: B, item: T) -> Self {
         Self { bitmask, item }
