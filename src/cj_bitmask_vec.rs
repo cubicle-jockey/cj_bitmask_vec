@@ -61,6 +61,15 @@ where
     }
 
     /// Constructs a new, empty Vec with at least the specified capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::with_capacity(10);
+    /// assert_eq!(vec.len(), 0);
+    /// assert!(vec.capacity() >= 10);
+    /// ```
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: Vec::<BitmaskItem<B, T>>::with_capacity(capacity),
@@ -68,6 +77,14 @@ where
     }
 
     /// Returns the number of elements the vector can hold without reallocating.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let vec = BitmaskVec::<u8, i32>::with_capacity(10);
+    /// assert!(vec.capacity() >= 10);
+    /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
@@ -93,6 +110,20 @@ where
 
     /// Clears the vector, removing all values.<br>
     /// Note that this method has no effect on the allocated capacity of the vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push_with_mask(0b00000001, 42);
+    /// vec.push_with_mask(0b00000010, 100);
+    /// 
+    /// assert_eq!(vec.len(), 2);
+    /// vec.clear();
+    /// assert_eq!(vec.len(), 0);
+    /// assert!(vec.is_empty());
+    /// ```
     #[inline]
     pub fn clear(&mut self) {
         self.inner.clear();
@@ -121,6 +152,17 @@ where
     }
 
     /// Returns true if the vector contains no elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// assert!(vec.is_empty());
+    /// 
+    /// vec.push(42);
+    /// assert!(!vec.is_empty());
+    /// ```
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
@@ -283,6 +325,19 @@ where
 
     /// Pops T from the Vec without the bitmask.  If both T and bitmask are wanted,
     /// use pop_with_mask() instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push_with_mask(0b00000001, 42);
+    /// vec.push_with_mask(0b00000010, 100);
+    /// 
+    /// assert_eq!(vec.pop(), Some(100));
+    /// assert_eq!(vec.pop(), Some(42));
+    /// assert_eq!(vec.pop(), None);
+    /// ```
     #[inline]
     pub fn pop(&mut self) -> Option<T> {
         if let Some(item) = self.inner.pop() {
@@ -442,6 +497,17 @@ impl<'a, B, T> Default for BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Creates an empty `BitmaskVec<B, T>`.
+    ///
+    /// This is equivalent to calling `BitmaskVec::new()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let vec: BitmaskVec<u8, i32> = Default::default();
+    /// assert_eq!(vec.len(), 0);
+    /// ```
     fn default() -> Self {
         Self::new()
     }
@@ -453,6 +519,22 @@ where
 {
     type Output = T;
 
+    /// Returns a reference to the element at the given index.
+    ///
+    /// Note that this returns only the item `T`, not the bitmask. 
+    /// Use `as_slice()` if you need access to both the item and bitmask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push_with_mask(0b00000001, 42);
+    /// vec.push_with_mask(0b00000010, 100);
+    /// 
+    /// assert_eq!(vec[0], 42);
+    /// assert_eq!(vec[1], 100);
+    /// ```
     fn index(&self, index: usize) -> &Self::Output {
         &self.inner[index].item
     }
@@ -462,6 +544,23 @@ impl<'a, B, T> IndexMut<usize> for BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
 {
+    /// Returns a mutable reference to the element at the given index.
+    ///
+    /// Note that this returns only a mutable reference to the item `T`, not the bitmask.
+    /// Use `as_mut_slice()` if you need mutable access to both the item and bitmask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push_with_mask(0b00000001, 42);
+    /// vec.push_with_mask(0b00000010, 100);
+    /// 
+    /// vec[0] = 999;
+    /// assert_eq!(vec[0], 999);
+    /// assert_eq!(vec[1], 100);
+    /// ```
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.inner[index].item
     }
@@ -471,6 +570,22 @@ impl<'a, B, T> AddAssign<(B, T)> for BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Appends a bitmask and item tuple to the vector using the `+=` operator.
+    ///
+    /// This is equivalent to calling `push_with_mask(rhs.0, rhs.1)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec += (0b00000001, 42);
+    /// vec += (0b00000010, 100);
+    /// 
+    /// assert_eq!(vec.len(), 2);
+    /// assert_eq!(vec[0], 42);
+    /// assert_eq!(vec[1], 100);
+    /// ```
     #[inline(always)]
     fn add_assign(&mut self, rhs: (B, T)) {
         self.push_with_mask(rhs.0, rhs.1);
@@ -481,6 +596,22 @@ impl<'a, B, T> AddAssign<T> for BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Appends an item to the vector using the `+=` operator with a default bitmask.
+    ///
+    /// This is equivalent to calling `push(rhs)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec += 42;
+    /// vec += 100;
+    /// 
+    /// assert_eq!(vec.len(), 2);
+    /// assert_eq!(vec[0], 42);
+    /// assert_eq!(vec[1], 100);
+    /// ```
     #[inline(always)]
     fn add_assign(&mut self, rhs: T) {
         self.push(rhs);
@@ -491,6 +622,27 @@ impl<'a, B, T> AddAssign for BitmaskVec<B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Appends all elements from another BitmaskVec using the `+=` operator.
+    ///
+    /// This moves all elements from the right-hand side vector into this vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec1 = BitmaskVec::<u8, i32>::new();
+    /// vec1 += (0b00000001, 42);
+    /// vec1 += (0b00000010, 100);
+    /// 
+    /// let mut vec2 = BitmaskVec::<u8, i32>::new();
+    /// vec2 += (0b00000100, 200);
+    /// vec2 += (0b00001000, 300);
+    /// 
+    /// vec1 += vec2;
+    /// assert_eq!(vec1.len(), 4);
+    /// assert_eq!(vec1[2], 200);
+    /// assert_eq!(vec1[3], 300);
+    /// ```
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
         self.inner.extend(rhs.inner);
@@ -510,6 +662,9 @@ impl<'a, B, T> BitmaskVecIter<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
 {
+    /// Creates a new `BitmaskVecIter` from a slice iterator.
+    ///
+    /// This is typically called internally by `BitmaskVec::iter()`.
     #[inline]
     pub fn new(i: Iter<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
@@ -542,10 +697,33 @@ impl<'a, B, T> BitmaskVecIterWithMask<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Creates a new `BitmaskVecIterWithMask` from a slice iterator.
+    ///
+    /// This is typically called internally by `BitmaskVec::iter_with_mask()`.
     #[inline]
     pub fn new(i: Iter<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
     }
+    
+    /// Finds the next item in the iterator that matches the given bitmask.
+    ///
+    /// This method advances the iterator until it finds an item whose bitmask
+    /// matches all the bits set in the provided mask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push_with_mask(0b00000001, 100);
+    /// vec.push_with_mask(0b00000010, 200);
+    /// vec.push_with_mask(0b00000011, 300);
+    /// 
+    /// let mut iter = vec.iter_with_mask();
+    /// let item = iter.filter_mask(&0b00000010);
+    /// assert!(item.is_some());
+    /// assert_eq!(item.unwrap().item, 200);
+    /// ```
     #[inline]
     pub fn filter_mask(&mut self, mask: &'a B) -> Option<&'a BitmaskItem<B, T>> {
         self.inner.by_ref().find(|&item| item.matches_mask(mask))
@@ -577,6 +755,9 @@ impl<'a, B, T> BitmaskVecIterMut<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B>,
 {
+    /// Creates a new `BitmaskVecIterMut` from a mutable slice iterator.
+    ///
+    /// This is typically called internally by `BitmaskVec::iter_mut()`.
     #[inline]
     pub fn new(i: IterMut<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
@@ -609,10 +790,35 @@ impl<'a, B, T> BitmaskVecIterWithMaskMut<'a, B, T>
 where
     B: Bitflag + CjMatchesMask<'a, B> + Clone + Default,
 {
+    /// Creates a new `BitmaskVecIterWithMaskMut` from a mutable slice iterator.
+    ///
+    /// This is typically called internally by `BitmaskVec::iter_with_mask_mut()`.
     #[inline]
     pub fn new(i: IterMut<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
     }
+    
+    /// Finds the next item in the iterator that matches the given bitmask.
+    ///
+    /// This method advances the iterator until it finds an item whose bitmask
+    /// matches all the bits set in the provided mask, returning a mutable reference.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// vec.push_with_mask(0b00000001, 100);
+    /// vec.push_with_mask(0b00000010, 200);
+    /// vec.push_with_mask(0b00000011, 300);
+    /// 
+    /// let mut iter = vec.iter_with_mask_mut();
+    /// let item = iter.filter_mask(&0b00000010);
+    /// assert!(item.is_some());
+    /// let item = item.unwrap();
+    /// assert_eq!(item.item, 200);
+    /// item.item = 999; // Modify the item
+    /// ```
     #[inline]
     pub fn filter_mask(&mut self, mask: &'a B) -> Option<&'a mut BitmaskItem<B, T>> {
         self.inner.by_ref().find(|item| item.matches_mask(mask))
