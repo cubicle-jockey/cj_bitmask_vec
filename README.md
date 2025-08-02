@@ -335,3 +335,13 @@ The benchmarks will generate HTML reports (if you have gnuplot installed) in the
 - Performance comparisons across different input sizes
 - Regression detection across benchmark runs
 - Detailed plots and charts (with gnuplot)
+
+## Changelog
+
+### Version 1.2.0
+- Added `filtered()` method for filtering items by bitmask
+- Added `filtered_mut()` method for mutable filtering of items by bitmask
+- Added `filtered_with_mask()` method for filtering with access to both items and bitmasks
+- Added `filtered_with_mask_mut()` method for mutable filtering with access to both items and bitmasks
+- Enhanced documentation with comprehensive examples for all filtering methods
+- Added benchmarks for all new filtering methods
