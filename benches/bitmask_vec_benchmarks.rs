@@ -215,6 +215,68 @@ fn bench_filtering_operations(c: &mut Criterion) {
                 })
             },
         );
+
+        group.bench_with_input(BenchmarkId::new("filtered", size), size, |b, &size| {
+            b.iter(|| {
+                let mut vec = BitmaskVec::with_capacity(size);
+                for i in 0..size {
+                    vec.push_with_mask((i % 256) as u8, i as i32);
+                }
+
+                let mut sum = 0i64;
+                let mask = black_box(0b00000010u8);
+                for item in vec.filtered(&mask) {
+                    sum += *item as i64;
+                }
+                black_box(sum)
+            })
+        });
+
+        group.bench_with_input(BenchmarkId::new("filtered_mut", size), size, |b, &size| {
+            b.iter(|| {
+                let mut vec = BitmaskVec::with_capacity(size);
+                for i in 0..size {
+                    vec.push_with_mask((i % 256) as u8, i as i32);
+                }
+
+                let mask = black_box(0b00000010u8);
+                for item in vec.filtered_mut(&mask) {
+                    *item += 1;
+                }
+                black_box(vec)
+            })
+        });
+
+        group.bench_with_input(BenchmarkId::new("filtered_with_mask", size), size, |b, &size| {
+            b.iter(|| {
+                let mut vec = BitmaskVec::with_capacity(size);
+                for i in 0..size {
+                    vec.push_with_mask((i % 256) as u8, i as i32);
+                }
+
+                let mut sum = 0i64;
+                let mask = black_box(0b00000010u8);
+                for pair in vec.filtered_with_mask(&mask) {
+                    sum += pair.item as i64;
+                }
+                black_box(sum)
+            })
+        });
+
+        group.bench_with_input(BenchmarkId::new("filtered_with_mask_mut", size), size, |b, &size| {
+            b.iter(|| {
+                let mut vec = BitmaskVec::with_capacity(size);
+                for i in 0..size {
+                    vec.push_with_mask((i % 256) as u8, i as i32);
+                }
+
+                let mask = black_box(0b00000010u8);
+                for pair in vec.filtered_with_mask_mut(&mask) {
+                    pair.item += 1;
+                }
+                black_box(vec)
+            })
+        });
     }
 
     group.finish();
