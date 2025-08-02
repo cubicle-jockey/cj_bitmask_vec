@@ -180,6 +180,132 @@ fn main() {
 }
 ```
 
+## Filtering Methods
+
+BitmaskVec provides convenient filtering methods that return iterators over items matching specific bitmasks:
+
+### `filtered()` - Filter items only
+
+Returns an iterator over items (T) that match the given bitmask:
+
+```rust
+fn main() {
+    use cj_bitmask_vec::prelude::*;
+
+    let mut tasks = BitmaskVec::<u8, String>::new();
+    
+    const ACTIVE: u8 = 0b00000001;
+    const INACTIVE: u8 = 0b00000010;
+    const COMPLETED: u8 = 0b00000100;
+    
+    tasks.push_with_mask(ACTIVE, "Write documentation".to_string());
+    tasks.push_with_mask(INACTIVE, "Review code".to_string());
+    tasks.push_with_mask(ACTIVE, "Run tests".to_string());
+    tasks.push_with_mask(COMPLETED, "Deploy to production".to_string());
+    
+    // Get all active tasks
+    let active_tasks: Vec<&String> = tasks.filtered(&ACTIVE).collect();
+    assert_eq!(active_tasks.len(), 2);
+    println!("Active tasks: {:?}", active_tasks);
+}
+```
+
+### `filtered_mut()` - Filter and modify items
+
+Returns a mutable iterator over items (T) that match the given bitmask:
+
+```rust
+fn main() {
+    use cj_bitmask_vec::prelude::*;
+
+    let mut scores = BitmaskVec::<u8, i32>::new();
+    
+    const BONUS_ELIGIBLE: u8 = 0b00000001;
+    const REGULAR: u8 = 0b00000010;
+    
+    scores.push_with_mask(BONUS_ELIGIBLE, 85);
+    scores.push_with_mask(REGULAR, 75);
+    scores.push_with_mask(BONUS_ELIGIBLE, 92);
+    scores.push_with_mask(REGULAR, 68);
+    
+    // Apply bonus to eligible scores
+    for score in scores.filtered_mut(&BONUS_ELIGIBLE) {
+        *score += 10; // Add 10 point bonus
+    }
+    
+    assert_eq!(scores[0], 95); // 85 + 10
+    assert_eq!(scores[1], 75); // unchanged
+    assert_eq!(scores[2], 102); // 92 + 10
+    assert_eq!(scores[3], 68); // unchanged
+}
+```
+
+### `filtered_with_mask()` - Filter with access to bitmasks
+
+Returns an iterator over BitmaskItem objects that match the given bitmask:
+
+```rust
+fn main() {
+    use cj_bitmask_vec::prelude::*;
+
+    let mut tasks = BitmaskVec::<u8, String>::new();
+    
+    const URGENT: u8 = 0b00000001;
+    const NORMAL: u8 = 0b00000010;
+    const LOW: u8 = 0b00000100;
+    const ARCHIVED: u8 = 0b00001000;
+    
+    tasks.push_with_mask(URGENT, "Fix critical bug".to_string());
+    tasks.push_with_mask(NORMAL, "Update documentation".to_string());
+    tasks.push_with_mask(URGENT | LOW, "Refactor old code".to_string());
+    tasks.push_with_mask(URGENT | ARCHIVED, "Legacy system issue".to_string());
+    
+    // Process urgent tasks and check their additional flags
+    for task_item in tasks.filtered_with_mask(&URGENT) {
+        println!("Urgent task: {}", task_item.item);
+        if task_item.matches_mask(&ARCHIVED) {
+            println!("  -> This is an archived urgent task");
+        }
+        if task_item.matches_mask(&LOW) {
+            println!("  -> This urgent task also has low priority");
+        }
+    }
+}
+```
+
+### `filtered_with_mask_mut()` - Filter and modify items with bitmasks
+
+Returns a mutable iterator over BitmaskItem objects that match the given bitmask:
+
+```rust
+fn main() {
+    use cj_bitmask_vec::prelude::*;
+
+    let mut tasks = BitmaskVec::<u8, String>::new();
+    
+    const PENDING: u8 = 0b00000001;
+    const PROCESSING: u8 = 0b00000010;
+    const COMPLETED: u8 = 0b00000100;
+    
+    tasks.push_with_mask(PENDING, "Task A".to_string());
+    tasks.push_with_mask(PENDING, "Task B".to_string());
+    tasks.push_with_mask(COMPLETED, "Task C".to_string());
+    
+    // Start processing all pending tasks
+    for task_item in tasks.filtered_with_mask_mut(&PENDING) {
+        // Update the task status
+        task_item.set_mask(PROCESSING);
+        // Modify the task name to show progress
+        task_item.item.push_str(" (in progress)");
+    }
+    
+    // Verify the changes
+    assert_eq!(tasks[0], "Task A (in progress)");
+    assert_eq!(tasks[1], "Task B (in progress)");
+    assert_eq!(tasks[2], "Task C"); // unchanged
+}
+```
+
 ## Benchmarks
 
 This crate includes comprehensive benchmarks to measure the performance of various BitmaskVec operations. The benchmarks cover:
