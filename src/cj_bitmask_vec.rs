@@ -118,7 +118,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec.push_with_mask(0b00000001, 42);
     /// vec.push_with_mask(0b00000010, 100);
-    /// 
+    ///
     /// assert_eq!(vec.len(), 2);
     /// vec.clear();
     /// assert_eq!(vec.len(), 0);
@@ -159,7 +159,7 @@ where
     /// # use cj_bitmask_vec::prelude::*;
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// assert!(vec.is_empty());
-    /// 
+    ///
     /// vec.push(42);
     /// assert!(!vec.is_empty());
     /// ```
@@ -272,7 +272,7 @@ where
     /// # use cj_bitmask_vec::prelude::*;
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// assert_eq!(vec.len(), 0);
-    /// 
+    ///
     /// vec.push(42);
     /// vec.push_with_mask(0b00000001, 100);
     /// assert_eq!(vec.len(), 2);
@@ -297,7 +297,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec.push(42);
     /// vec.push(100);
-    /// 
+    ///
     /// assert_eq!(vec.len(), 2);
     /// assert_eq!(vec[0], 42);
     /// assert_eq!(vec[1], 100);
@@ -333,7 +333,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec.push_with_mask(0b00000001, 42);
     /// vec.push_with_mask(0b00000010, 100);
-    /// 
+    ///
     /// assert_eq!(vec.pop(), Some(100));
     /// assert_eq!(vec.pop(), Some(42));
     /// assert_eq!(vec.pop(), None);
@@ -491,6 +491,42 @@ where
     pub fn iter_with_mask_mut(&'a mut self) -> BitmaskVecIterWithMaskMut<'a, B, T> {
         BitmaskVecIterWithMaskMut::new(self.inner.iter_mut())
     }
+
+    /// Returns an iterator over the items in the vector that match the given mask.
+    #[inline]
+    pub fn filtered(&'a self, mask: &'a B) -> impl Iterator<Item = &'a T> + 'a {
+        self.iter_with_mask()
+            .filter(move |item| item.matches_mask(mask))
+            .map(|item| &item.item)
+    }
+
+    /// Returns a mutable iterator over the items in the vector that match the given mask.
+    #[inline]
+    pub fn filtered_mut(&'a mut self, mask: &'a B) -> impl Iterator<Item = &'a mut T> + 'a {
+        self.iter_with_mask_mut()
+            .filter(move |item| item.matches_mask(mask))
+            .map(|item| &mut item.item)
+    }
+
+    /// Returns an iterator over the items in the vector that match the given mask, including their bitmasks.
+    #[inline]
+    pub fn filtered_with_mask(
+        &'a self,
+        mask: &'a B,
+    ) -> impl Iterator<Item = &'a BitmaskItem<B, T>> + 'a {
+        self.iter_with_mask()
+            .filter(move |item| item.matches_mask(mask))
+    }
+
+    /// Returns a mutable iterator over the items in the vector that match the given mask, including their bitmasks.
+    #[inline]
+    pub fn filtered_with_mask_mut(
+        &'a mut self,
+        mask: &'a B,
+    ) -> impl Iterator<Item = &'a mut BitmaskItem<B, T>> + 'a {
+        self.iter_with_mask_mut()
+            .filter(move |item| item.matches_mask(mask))
+    }
 }
 
 impl<'a, B, T> Default for BitmaskVec<B, T>
@@ -521,7 +557,7 @@ where
 
     /// Returns a reference to the element at the given index.
     ///
-    /// Note that this returns only the item `T`, not the bitmask. 
+    /// Note that this returns only the item `T`, not the bitmask.
     /// Use `as_slice()` if you need access to both the item and bitmask.
     ///
     /// # Examples
@@ -531,7 +567,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec.push_with_mask(0b00000001, 42);
     /// vec.push_with_mask(0b00000010, 100);
-    /// 
+    ///
     /// assert_eq!(vec[0], 42);
     /// assert_eq!(vec[1], 100);
     /// ```
@@ -556,7 +592,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec.push_with_mask(0b00000001, 42);
     /// vec.push_with_mask(0b00000010, 100);
-    /// 
+    ///
     /// vec[0] = 999;
     /// assert_eq!(vec[0], 999);
     /// assert_eq!(vec[1], 100);
@@ -581,7 +617,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec += (0b00000001, 42);
     /// vec += (0b00000010, 100);
-    /// 
+    ///
     /// assert_eq!(vec.len(), 2);
     /// assert_eq!(vec[0], 42);
     /// assert_eq!(vec[1], 100);
@@ -607,7 +643,7 @@ where
     /// let mut vec = BitmaskVec::<u8, i32>::new();
     /// vec += 42;
     /// vec += 100;
-    /// 
+    ///
     /// assert_eq!(vec.len(), 2);
     /// assert_eq!(vec[0], 42);
     /// assert_eq!(vec[1], 100);
@@ -633,11 +669,11 @@ where
     /// let mut vec1 = BitmaskVec::<u8, i32>::new();
     /// vec1 += (0b00000001, 42);
     /// vec1 += (0b00000010, 100);
-    /// 
+    ///
     /// let mut vec2 = BitmaskVec::<u8, i32>::new();
     /// vec2 += (0b00000100, 200);
     /// vec2 += (0b00001000, 300);
-    /// 
+    ///
     /// vec1 += vec2;
     /// assert_eq!(vec1.len(), 4);
     /// assert_eq!(vec1[2], 200);
@@ -669,7 +705,6 @@ where
     pub fn new(i: Iter<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
     }
-
 }
 
 impl<'a, B, T> Iterator for BitmaskVecIter<'a, B, T>
@@ -704,7 +739,7 @@ where
     pub fn new(i: Iter<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
     }
-    
+
     /// Finds the next item in the iterator that matches the given bitmask.
     ///
     /// This method advances the iterator until it finds an item whose bitmask
@@ -718,7 +753,7 @@ where
     /// vec.push_with_mask(0b00000001, 100);
     /// vec.push_with_mask(0b00000010, 200);
     /// vec.push_with_mask(0b00000011, 300);
-    /// 
+    ///
     /// let mut iter = vec.iter_with_mask();
     /// let item = iter.filter_mask(&0b00000010);
     /// assert!(item.is_some());
@@ -762,7 +797,6 @@ where
     pub fn new(i: IterMut<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
     }
-
 }
 
 impl<'a, B, T> Iterator for BitmaskVecIterMut<'a, B, T>
@@ -797,7 +831,7 @@ where
     pub fn new(i: IterMut<'a, BitmaskItem<B, T>>) -> Self {
         Self { inner: i }
     }
-    
+
     /// Finds the next item in the iterator that matches the given bitmask.
     ///
     /// This method advances the iterator until it finds an item whose bitmask
@@ -811,7 +845,7 @@ where
     /// vec.push_with_mask(0b00000001, 100);
     /// vec.push_with_mask(0b00000010, 200);
     /// vec.push_with_mask(0b00000011, 300);
-    /// 
+    ///
     /// let mut iter = vec.iter_with_mask_mut();
     /// let item = iter.filter_mask(&0b00000010);
     /// assert!(item.is_some());
@@ -1410,10 +1444,10 @@ mod test {
     fn test_bitmask_vec_is_empty() {
         let mut v = BitmaskVec::<u8, i32>::new();
         assert!(v.is_empty());
-        
+
         v.push_with_mask(0b00000001, 100);
         assert!(!v.is_empty());
-        
+
         v.clear();
         assert!(v.is_empty());
     }
@@ -1430,7 +1464,7 @@ mod test {
         v.truncate(3);
         assert_eq!(v.len(), 3);
         assert_eq!(v[2], 102);
-        
+
         // Truncating to larger size should have no effect
         v.truncate(10);
         assert_eq!(v.len(), 3);
@@ -1440,7 +1474,7 @@ mod test {
     fn test_bitmask_vec_reserve_exact() {
         let mut v = BitmaskVec::<u8, i32>::new();
         let initial_capacity = v.capacity();
-        
+
         v.reserve_exact(10);
         assert!(v.capacity() >= initial_capacity + 10);
     }
@@ -1449,17 +1483,17 @@ mod test {
     #[test]
     fn test_bitmask_vec_empty_operations() {
         let mut v = BitmaskVec::<u8, i32>::new();
-        
+
         // Test operations on empty collection
         assert!(v.is_empty());
         assert_eq!(v.len(), 0);
         assert_eq!(v.pop(), None);
         assert!(v.pop_with_mask().is_none());
-        
+
         // Clear empty collection should work
         v.clear();
         assert!(v.is_empty());
-        
+
         // Truncate empty collection should work
         v.truncate(0);
         assert!(v.is_empty());
@@ -1490,11 +1524,11 @@ mod test {
     fn test_bitmask_vec_single_element() {
         let mut v = BitmaskVec::<u8, i32>::new();
         v.push_with_mask(0b10101010, 42);
-        
+
         assert_eq!(v.len(), 1);
         assert!(!v.is_empty());
         assert_eq!(v[0], 42);
-        
+
         let popped = v.pop_with_mask().unwrap();
         assert_eq!(popped.item, 42);
         assert_eq!(popped.bitmask, 0b10101010);
@@ -1507,11 +1541,11 @@ mod test {
         let mut v = BitmaskVec::<u16, i32>::new();
         v.push_with_mask(0b1010101010101010u16, 100);
         v.push_with_mask(0b0101010101010101u16, 200);
-        
+
         assert_eq!(v.len(), 2);
         assert_eq!(v[0], 100);
         assert_eq!(v[1], 200);
-        
+
         let mut count = 0;
         for item in v.iter_with_mask() {
             if item.matches_mask(&0b1000000000000000u16) {
@@ -1526,11 +1560,11 @@ mod test {
         let mut v = BitmaskVec::<u32, i32>::new();
         v.push_with_mask(0b10101010101010101010101010101010u32, 100);
         v.push_with_mask(0b01010101010101010101010101010101u32, 200);
-        
+
         assert_eq!(v.len(), 2);
         assert_eq!(v[0], 100);
         assert_eq!(v[1], 200);
-        
+
         let mut count = 0;
         for item in v.iter_with_mask() {
             if item.matches_mask(&0b10000000000000000000000000000000u32) {
@@ -1543,16 +1577,24 @@ mod test {
     #[test]
     fn test_bitmask_vec_u64() {
         let mut v = BitmaskVec::<u64, i32>::new();
-        v.push_with_mask(0b1010101010101010101010101010101010101010101010101010101010101010u64, 100);
-        v.push_with_mask(0b0101010101010101010101010101010101010101010101010101010101010101u64, 200);
-        
+        v.push_with_mask(
+            0b1010101010101010101010101010101010101010101010101010101010101010u64,
+            100,
+        );
+        v.push_with_mask(
+            0b0101010101010101010101010101010101010101010101010101010101010101u64,
+            200,
+        );
+
         assert_eq!(v.len(), 2);
         assert_eq!(v[0], 100);
         assert_eq!(v[1], 200);
-        
+
         let mut count = 0;
         for item in v.iter_with_mask() {
-            if item.matches_mask(&0b1000000000000000000000000000000000000000000000000000000000000000u64) {
+            if item.matches_mask(
+                &0b1000000000000000000000000000000000000000000000000000000000000000u64,
+            ) {
                 count += 1;
             }
         }
@@ -1570,10 +1612,10 @@ mod test {
     fn test_bitmask_vec_add_assign_empty() {
         let mut v1 = BitmaskVec::<u8, i32>::new();
         let v2 = BitmaskVec::<u8, i32>::new();
-        
+
         v1 += v2;
         assert!(v1.is_empty());
-        
+
         v1 += (0b00000001, 42);
         assert_eq!(v1.len(), 1);
         assert_eq!(v1[0], 42);
@@ -1582,22 +1624,22 @@ mod test {
     #[test]
     fn test_bitmask_vec_large_operations() {
         let mut v = BitmaskVec::<u8, i32>::new();
-        
+
         // Add many elements
         for i in 0..1000 {
             v.push_with_mask((i % 256) as u8, i);
         }
-        
+
         assert_eq!(v.len(), 1000);
         assert_eq!(v[999], 999);
-        
+
         // Test iteration over large collection
         let mut sum = 0;
         for item in v.iter() {
             sum += item;
         }
         assert_eq!(sum, (0..1000).sum::<i32>());
-        
+
         // Test filtering on large collection
         let mut count = 0;
         for item in v.iter_with_mask() {
