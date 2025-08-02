@@ -998,6 +998,16 @@ mod test {
     }
 
     #[test]
+    fn test_bitmask_vec_with_mask_filter_none() {
+        let mut v = BitmaskVec::<u8, i32>::new();
+        v.push_with_mask(0b00000000, 100);
+        v.push_with_mask(0b00000010, 101);
+
+        let mut z = v.iter_with_mask();
+        assert!(z.filter_mask(&0b00000100).is_none());
+    }
+
+    #[test]
     fn test_bitmask_vec_iter_mut() {
         let mut v = BitmaskVec::<u8, i32>::new();
         v.push_with_mask(0b00000000, 100);
