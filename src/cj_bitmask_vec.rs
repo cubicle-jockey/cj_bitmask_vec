@@ -386,7 +386,7 @@ where
     /// assert_eq!(total, 721);
     /// ```
     #[inline]
-    pub fn iter(&'a self) -> BitmaskVecIter<'a, B, T> {
+    pub fn iter(&self) -> BitmaskVecIter<'_, B, T> {
         BitmaskVecIter::new(self.inner.iter())
     }
 
