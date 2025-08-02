@@ -493,6 +493,39 @@ where
     }
 
     /// Returns an iterator over the items in the vector that match the given mask.
+    ///
+    /// This method filters the vector based on the provided bitmask and returns an iterator
+    /// that yields only the items (of type `T`) whose bitmasks match the given mask.
+    /// The bitmasks themselves are not included in the iteration - use `filtered_with_mask`
+    /// if you need access to both the items and their bitmasks.
+    ///
+    /// # Arguments
+    ///
+    /// * `mask` - The bitmask to filter by. Only items whose bitmasks match this mask will be included.
+    ///
+    /// # Returns
+    ///
+    /// An iterator that yields references to the items (`&T`) that match the mask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, String>::new();
+    /// 
+    /// const ACTIVE: u8 = 0b00000001;
+    /// const INACTIVE: u8 = 0b00000010;
+    /// 
+    /// vec.push_with_mask(ACTIVE, "Task 1".to_string());
+    /// vec.push_with_mask(INACTIVE, "Task 2".to_string());
+    /// vec.push_with_mask(ACTIVE, "Task 3".to_string());
+    /// 
+    /// // Iterate over only the active tasks
+    /// let active_tasks: Vec<&String> = vec.filtered(&ACTIVE).collect();
+    /// assert_eq!(active_tasks.len(), 2);
+    /// assert_eq!(active_tasks[0], "Task 1");
+    /// assert_eq!(active_tasks[1], "Task 3");
+    /// ```
     #[inline]
     pub fn filtered(&'a self, mask: &'a B) -> impl Iterator<Item = &'a T> + 'a {
         self.iter_with_mask()
@@ -501,6 +534,42 @@ where
     }
 
     /// Returns a mutable iterator over the items in the vector that match the given mask.
+    ///
+    /// This method filters the vector based on the provided bitmask and returns a mutable iterator
+    /// that yields only the items (of type `T`) whose bitmasks match the given mask.
+    /// The bitmasks themselves are not included in the iteration - use `filtered_with_mask_mut`
+    /// if you need mutable access to both the items and their bitmasks.
+    ///
+    /// # Arguments
+    ///
+    /// * `mask` - The bitmask to filter by. Only items whose bitmasks match this mask will be included.
+    ///
+    /// # Returns
+    ///
+    /// An iterator that yields mutable references to the items (`&mut T`) that match the mask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, i32>::new();
+    /// 
+    /// const POSITIVE: u8 = 0b00000001;
+    /// const NEGATIVE: u8 = 0b00000010;
+    /// 
+    /// vec.push_with_mask(POSITIVE, 10);
+    /// vec.push_with_mask(NEGATIVE, -5);
+    /// vec.push_with_mask(POSITIVE, 20);
+    /// 
+    /// // Double all positive numbers
+    /// for value in vec.filtered_mut(&POSITIVE) {
+    ///     *value *= 2;
+    /// }
+    /// 
+    /// assert_eq!(vec[0], 20);  // 10 * 2
+    /// assert_eq!(vec[1], -5);  // unchanged
+    /// assert_eq!(vec[2], 40);  // 20 * 2
+    /// ```
     #[inline]
     pub fn filtered_mut(&'a mut self, mask: &'a B) -> impl Iterator<Item = &'a mut T> + 'a {
         self.iter_with_mask_mut()
@@ -509,6 +578,44 @@ where
     }
 
     /// Returns an iterator over the items in the vector that match the given mask, including their bitmasks.
+    ///
+    /// This method filters the vector based on the provided bitmask and returns an iterator
+    /// that yields `BitmaskItem<B, T>` objects containing both the item and its bitmask.
+    /// This is useful when you need access to both the data and the bitmask information
+    /// during iteration. For items-only iteration, use `filtered` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `mask` - The bitmask to filter by. Only items whose bitmasks match this mask will be included.
+    ///
+    /// # Returns
+    ///
+    /// An iterator that yields references to `BitmaskItem<B, T>` objects that match the mask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, String>::new();
+    /// 
+    /// const URGENT: u8 = 0b00000001;
+    /// const NORMAL: u8 = 0b00000010;
+    /// const LOW: u8 = 0b00000100;
+    /// const ARCHIVED: u8 = 0b00001000;
+    /// 
+    /// vec.push_with_mask(URGENT, "Critical task".to_string());
+    /// vec.push_with_mask(NORMAL, "Regular task".to_string());
+    /// vec.push_with_mask(URGENT | LOW, "Mixed priority".to_string());
+    /// vec.push_with_mask(URGENT | ARCHIVED, "Old urgent task".to_string());
+    /// 
+    /// // Process urgent tasks and check their exact bitmasks
+    /// for task_item in vec.filtered_with_mask(&URGENT) {
+    ///     println!("Task: {}, Mask: {:08b}", task_item.item, task_item.bitmask);
+    ///     if task_item.matches_mask(&ARCHIVED) {
+    ///         println!("This urgent task is archived!");
+    ///     }
+    /// }
+    /// ```
     #[inline]
     pub fn filtered_with_mask(
         &'a self,
@@ -519,6 +626,47 @@ where
     }
 
     /// Returns a mutable iterator over the items in the vector that match the given mask, including their bitmasks.
+    ///
+    /// This method filters the vector based on the provided bitmask and returns a mutable iterator
+    /// that yields `BitmaskItem<B, T>` objects containing both the item and its bitmask.
+    /// This allows you to modify both the item data and the bitmask during iteration.
+    /// For mutable items-only iteration, use `filtered_mut` instead.
+    ///
+    /// # Arguments
+    ///
+    /// * `mask` - The bitmask to filter by. Only items whose bitmasks match this mask will be included.
+    ///
+    /// # Returns
+    ///
+    /// An iterator that yields mutable references to `BitmaskItem<B, T>` objects that match the mask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use cj_bitmask_vec::prelude::*;
+    /// let mut vec = BitmaskVec::<u8, String>::new();
+    /// 
+    /// const PENDING: u8 = 0b00000001;
+    /// const PROCESSING: u8 = 0b00000010;
+    /// const COMPLETED: u8 = 0b00000100;
+    /// 
+    /// vec.push_with_mask(PENDING, "Task A".to_string());
+    /// vec.push_with_mask(PENDING, "Task B".to_string());
+    /// vec.push_with_mask(COMPLETED, "Task C".to_string());
+    /// 
+    /// // Process all pending tasks
+    /// for task_item in vec.filtered_with_mask_mut(&PENDING) {
+    ///     // Update the task status
+    ///     task_item.set_mask(PROCESSING);
+    ///     // Modify the task name
+    ///     task_item.item.push_str(" (in progress)");
+    /// }
+    /// 
+    /// // Verify the changes
+    /// assert_eq!(vec[0], "Task A (in progress)");
+    /// assert_eq!(vec[1], "Task B (in progress)");
+    /// assert_eq!(vec[2], "Task C"); // unchanged
+    /// ```
     #[inline]
     pub fn filtered_with_mask_mut(
         &'a mut self,
