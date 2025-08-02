@@ -386,7 +386,7 @@ where
     /// assert_eq!(total, 721);
     /// ```
     #[inline]
-    pub fn iter(&'a mut self) -> BitmaskVecIter<'a, B, T> {
+    pub fn iter(&'a self) -> BitmaskVecIter<'a, B, T> {
         BitmaskVecIter::new(self.inner.iter())
     }
 
@@ -412,7 +412,7 @@ where
     /// assert_eq!(total, 306);
     /// ```
     #[inline]
-    pub fn iter_with_mask(&'a mut self) -> BitmaskVecIterWithMask<'a, B, T> {
+    pub fn iter_with_mask(&'a self) -> BitmaskVecIterWithMask<'a, B, T> {
         BitmaskVecIterWithMask::new(self.inner.iter())
     }
 
