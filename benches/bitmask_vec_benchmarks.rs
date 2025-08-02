@@ -25,7 +25,7 @@ fn bench_basic_operations(c: &mut Criterion) {
     for size in [100, 1000, 10000].iter() {
         group.bench_with_input(BenchmarkId::new("push", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec: BitmaskVec<u8, i32> = BitmaskVec::new();
+                let mut vec: BitmaskVec<u8, i32> = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push(black_box(i as i32));
                 }
@@ -38,7 +38,7 @@ fn bench_basic_operations(c: &mut Criterion) {
             size,
             |b, &size| {
                 b.iter(|| {
-                    let mut vec = BitmaskVec::new();
+                    let mut vec = BitmaskVec::with_capacity(size);
                     for i in 0..size {
                         vec.push_with_mask(black_box((i % 256) as u8), black_box(i as i32));
                     }
@@ -56,7 +56,7 @@ fn bench_indexing_operations(c: &mut Criterion) {
 
     // Create test vectors of different sizes
     for size in [100, 1000, 10000].iter() {
-        let mut vec = BitmaskVec::new();
+        let mut vec = BitmaskVec::with_capacity(*size);
         for i in 0..*size {
             vec.push_with_mask((i % 256) as u8, i as i32);
         }
@@ -70,7 +70,7 @@ fn bench_indexing_operations(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("pop", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec = BitmaskVec::new();
+                let mut vec = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push_with_mask((i % 256) as u8, i as i32);
                 }
@@ -82,7 +82,7 @@ fn bench_indexing_operations(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("pop_with_mask", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec = BitmaskVec::new();
+                let mut vec = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push_with_mask((i % 256) as u8, i as i32);
                 }
@@ -103,7 +103,7 @@ fn bench_iteration_operations(c: &mut Criterion) {
     for size in [100, 1000, 10000].iter() {
         group.bench_with_input(BenchmarkId::new("iter", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec = BitmaskVec::new();
+                let mut vec = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push_with_mask((i % 256) as u8, i as i32);
                 }
@@ -121,7 +121,7 @@ fn bench_iteration_operations(c: &mut Criterion) {
             size,
             |b, &size| {
                 b.iter(|| {
-                    let mut vec = BitmaskVec::new();
+                    let mut vec = BitmaskVec::with_capacity(size);
                     for i in 0..size {
                         vec.push_with_mask((i % 256) as u8, i as i32);
                     }
@@ -138,7 +138,7 @@ fn bench_iteration_operations(c: &mut Criterion) {
         // Benchmark mutable iteration
         group.bench_with_input(BenchmarkId::new("iter_mut", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec = BitmaskVec::new();
+                let mut vec = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push_with_mask((i % 256) as u8, i as i32);
                 }
@@ -155,7 +155,7 @@ fn bench_iteration_operations(c: &mut Criterion) {
             size,
             |b, &size| {
                 b.iter(|| {
-                    let mut vec = BitmaskVec::new();
+                    let mut vec = BitmaskVec::with_capacity(size);
                     for i in 0..size {
                         vec.push_with_mask((i % 256) as u8, i as i32);
                     }
@@ -179,7 +179,7 @@ fn bench_filtering_operations(c: &mut Criterion) {
     for size in [100, 1000, 10000].iter() {
         group.bench_with_input(BenchmarkId::new("filter_mask", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec = BitmaskVec::new();
+                let mut vec = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push_with_mask((i % 256) as u8, i as i32);
                 }
@@ -199,7 +199,7 @@ fn bench_filtering_operations(c: &mut Criterion) {
             size,
             |b, &size| {
                 b.iter(|| {
-                    let mut vec = BitmaskVec::new();
+                    let mut vec = BitmaskVec::with_capacity(size);
                     for i in 0..size {
                         vec.push_with_mask((i % 256) as u8, i as i32);
                     }
@@ -227,8 +227,8 @@ fn bench_collection_operations(c: &mut Criterion) {
     for size in [100, 1000, 10000].iter() {
         group.bench_with_input(BenchmarkId::new("append", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec1 = BitmaskVec::new();
-                let mut vec2 = BitmaskVec::new();
+                let mut vec1 = BitmaskVec::with_capacity(size * 2);
+                let mut vec2 = BitmaskVec::with_capacity(size);
 
                 for i in 0..size {
                     vec1.push_with_mask((i % 256) as u8, i as i32);
@@ -242,7 +242,7 @@ fn bench_collection_operations(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("clear", size), size, |b, &size| {
             b.iter(|| {
-                let mut vec = BitmaskVec::new();
+                let mut vec = BitmaskVec::with_capacity(size);
                 for i in 0..size {
                     vec.push_with_mask((i % 256) as u8, i as i32);
                 }
@@ -283,7 +283,7 @@ fn bench_different_bitmask_types(c: &mut Criterion) {
     // Benchmark with u8 bitmask
     group.bench_function("u8_bitmask", |b| {
         b.iter(|| {
-            let mut vec: BitmaskVec<u8, i32> = BitmaskVec::new();
+            let mut vec: BitmaskVec<u8, i32> = BitmaskVec::with_capacity(size);
             for i in 0..size {
                 vec.push_with_mask((i % 256) as u8, i as i32);
             }
@@ -301,7 +301,7 @@ fn bench_different_bitmask_types(c: &mut Criterion) {
     // Benchmark with u16 bitmask
     group.bench_function("u16_bitmask", |b| {
         b.iter(|| {
-            let mut vec: BitmaskVec<u16, i32> = BitmaskVec::new();
+            let mut vec: BitmaskVec<u16, i32> = BitmaskVec::with_capacity(size);
             for i in 0..size {
                 vec.push_with_mask((i % 65536) as u16, i as i32);
             }
@@ -319,7 +319,7 @@ fn bench_different_bitmask_types(c: &mut Criterion) {
     // Benchmark with u32 bitmask
     group.bench_function("u32_bitmask", |b| {
         b.iter(|| {
-            let mut vec: BitmaskVec<u32, i32> = BitmaskVec::new();
+            let mut vec: BitmaskVec<u32, i32> = BitmaskVec::with_capacity(size);
             for i in 0..size {
                 vec.push_with_mask(i as u32, i as i32);
             }
@@ -337,7 +337,7 @@ fn bench_different_bitmask_types(c: &mut Criterion) {
     // Benchmark with u64 bitmask
     group.bench_function("u64_bitmask", |b| {
         b.iter(|| {
-            let mut vec: BitmaskVec<u64, i32> = BitmaskVec::new();
+            let mut vec: BitmaskVec<u64, i32> = BitmaskVec::with_capacity(size);
             for i in 0..size {
                 vec.push_with_mask(i as u64, i as i32);
             }
